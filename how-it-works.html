@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works | Trace Fresh</title>
+<meta name="description" content="How batch tracking works, and what this demonstration does and does not do.">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/data.js" defer></script>
+<script src="js/site.js" defer></script>
+</head>
+<body data-page="how-it-works">
+<a class="skip" href="#main">Skip to main content</a>
+<header id="site-header"></header>
+<main id="main" class="wrap">
+  <h1>How it works</h1>
+  <p>Batch tracking groups produce into a batch with an ID, then records each step the batch goes through. A shopper can later look up the ID and read the recorded steps.</p>
+  <h2>The idea in four steps</h2>
+  <ol class="steps">
+    <li><strong>Harvest.</strong> A batch is created and given an ID.</li>
+    <li><strong>Pack.</strong> The batch is packed and the ID is attached to the packaging.</li>
+    <li><strong>Transport.</strong> Movement of the batch is recorded.</li>
+    <li><strong>Arrival.</strong> The batch is received at the point of sale, where its ID can be looked up.</li>
+  </ol>
+  <h2>What this demo does</h2>
+  <ul>
+    <li>Filters a sample produce catalogue by category.</li>
+    <li>Looks up three sample batch records stored in the page's own files, and shows clear messages for invalid or unknown IDs.</li>
+  </ul>
+  <h2>What this demo does not do</h2>
+  <div class="notice">
+    <ul>
+      <li>It does not show real farms, suppliers, prices, certifications or deliveries.</li>
+      <li>It has no sign-in, ordering or payments.</li>
+      <li>It has no GPS tracking or QR scanning.</li>
+      <li>It does not store or save anything you enter.</li>
+    </ul>
+    <p>A real system would need a backend (a server and database) so that approved people can add records, plus a way to print and scan codes. That is not connected here.</p>
+  </div>
+  <p><a class="btn" href="lookup.html">Try the batch lookup</a></p>
+</main>
+<footer id="site-footer"></footer>
+</body>
+</html>

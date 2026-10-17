@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Produce catalogue | Trace Fresh</title>
+<meta name="description" content="Browse a sample produce catalogue with category filters.">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/data.js" defer></script>
+<script src="js/site.js" defer></script>
+</head>
+<body data-page="catalogue">
+<a class="skip" href="#main">Skip to main content</a>
+<header id="site-header"></header>
+<main id="main" class="wrap">
+  <h1>Produce catalogue</h1>
+  <p class="tag">Sample listings</p>
+  <p>These items are examples only. They have no prices, farms or availability, and cannot be ordered.</p>
+  <div id="filters" role="group" aria-label="Filter by category"></div>
+  <p id="count" aria-live="polite"></p>
+  <noscript><p class="note">JavaScript is needed to show the catalogue.</p></noscript>
+  <div id="items" class="grid"></div>
+</main>
+<footer id="site-footer"></footer>
+</body>
+</html>

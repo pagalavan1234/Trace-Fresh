@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Batch lookup | Trace Fresh</title>
+<meta name="description" content="Look up a sample batch record to see its demonstration journey.">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/data.js" defer></script>
+<script src="js/site.js" defer></script>
+</head>
+<body data-page="lookup">
+<a class="skip" href="#main">Skip to main content</a>
+<header id="site-header"></header>
+<main id="main" class="wrap">
+  <h1>Batch lookup</h1>
+  <p class="tag">Sample records only</p>
+  <p>Only the three demonstration batch IDs below will return a result. They are not real shipments.</p>
+  <form id="lookup-form" novalidate>
+    <label for="batch-id">Batch ID</label>
+    <input id="batch-id" name="batch-id" type="text" autocomplete="off" aria-describedby="batch-hint">
+    <p id="batch-hint" class="hint">Format: TF-DEMO-001</p>
+    <button class="btn" type="submit">Look up batch</button>
+  </form>
+  <p>Try a sample:
+    <a href="lookup.html?id=TF-DEMO-001">TF-DEMO-001</a>,
+    <a href="lookup.html?id=TF-DEMO-002">TF-DEMO-002</a>,
+    <a href="lookup.html?id=TF-DEMO-003">TF-DEMO-003</a>
+  </p>
+  <noscript><p class="note">JavaScript is needed for the lookup.</p></noscript>
+  <div id="result" aria-live="polite" tabindex="-1"></div>
+</main>
+<footer id="site-footer"></footer>
+</body>
+</html>

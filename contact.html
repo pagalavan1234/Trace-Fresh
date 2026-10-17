@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact | Trace Fresh</title>
+<meta name="description" content="Contact the Trace Fresh student project team.">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/data.js" defer></script>
+<script src="js/site.js" defer></script>
+</head>
+<body data-page="contact">
+<a class="skip" href="#main">Skip to main content</a>
+<header id="site-header"></header>
+<main id="main" class="wrap">
+  <h1>Contact</h1>
+  <p>This site has no server, so messages are not sent or stored by the site. The button below opens your own email app with your message filled in, once the project team has added an email address in <code>js/site.js</code>.</p>
+  <form id="contact-form" novalidate>
+    <label for="c-name">Your name</label>
+    <input id="c-name" type="text" autocomplete="name" required>
+    <label for="c-msg">Message</label>
+    <textarea id="c-msg" rows="5" required></textarea>
+    <button class="btn" type="submit">Open in my email app</button>
+  </form>
+  <p id="c-status" role="status"></p>
+</main>
+<footer id="site-footer"></footer>
+</body>
+</html>
