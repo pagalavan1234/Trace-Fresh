@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vegetable Route — QR Tracking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+:root{--bg:#f4f7f2;--card:#fff;--ink:#18251d;--muted:#617066;--green:#176b43;--green2:#e2f4e9;--line:#dce5dc;--amber:#fff3d7;--red:#ffebeb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:#123d2a;color:white;padding:22px max(18px,calc((100% - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header h1{font-size:23px;margin:0}header p{margin:4px 0 0;color:#d2e9da;font-size:13px}.pill{border:1px solid #5b8e71;border-radius:99px;padding:6px 10px;font-size:12px}
+main{max-width:1180px;margin:22px auto;padding:0 16px 40px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat,.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 3px 12px #183b2410}.stat small{color:var(--muted)}.stat strong{display:block;font-size:27px;margin-top:5px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel h2{font-size:18px;margin:0 0 12px}.panel p.sub{color:var(--muted);font-size:13px;margin:-6px 0 14px}
+label{display:block;font-size:13px;font-weight:650;margin:10px 0 5px}input,select,textarea{width:100%;padding:10px 11px;border:1px solid #cbd8cd;border-radius:9px;background:#fff;font:inherit;color:var(--ink)}button{border:0;border-radius:10px;padding:10px 13px;background:var(--green);color:white;font-weight:700;cursor:pointer;font:inherit}button.secondary{background:#e8eee9;color:#234331}button.danger{background:#a83232}button:disabled{opacity:.5;cursor:not-allowed}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#qrBox{display:flex;align-items:center;justify-content:center;min-height:150px;margin-top:12px;background:#f8faf8;border:1px dashed #b7c9b9;border-radius:12px;padding:12px}
+#reader{width:100%;max-width:440px;margin:12px auto 0;overflow:hidden;border-radius:12px}#scanResult{margin-top:10px;padding:10px;border-radius:9px;background:#f5f8f5;white-space:pre-wrap}
+.full{grid-column:1/-1}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px}.toolbar>div{flex:1;min-width:170px}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:700;background:#f8faf8}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+.badge{display:inline-block;border-radius:99px;padding:4px 8px;font-size:11px;font-weight:750;background:#e8eee9}.badge.Delivered{background:#dff4e5;color:#145d35}.badge.In-transit{background:#fff0cf;color:#875600}.badge.Dispatched{background:#e1edff;color:#214f8a}.badge.Created{background:#eee8ff;color:#5a3c91}.badge.Delayed{background:#ffe5e5;color:#a32e2e}
+.muted{color:var(--muted)}.note{background:#fff7df;border:1px solid #efdfac;padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:16px}.hidden{display:none!important}.event{border-left:3px solid #8bb99a;padding:0 0 12px 12px;margin-left:5px}.event:last-child{padding-bottom:0}.event strong{display:block}.event small{color:var(--muted)}
+footer{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.full{grid-column:auto}header h1{font-size:20px}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🥬 Vegetable Route</h1><p>QR-based farm-to-market shipment tracking</p></div>
+  <span class="pill">Prototype · Koyambedu, Chennai</span>
+</header>
+<main>
+  <div class="note"><strong>Prototype data storage:</strong> records are saved in this browser on this device. For shared use across farmers, drivers and market staff, connect a cloud database before deployment. Camera scanning and GPS generally require HTTPS (or localhost) and user permission.</div>
+  <section class="stats">
+    <div class="stat"><small>Total batches</small><strong id="statBatches">0</strong></div>
+    <div class="stat"><small>In transit</small><strong id="statTransit">0</strong></div>
+    <div class="stat"><small>Delivered</small><strong id="statDelivered">0</strong></div>
+    <div class="stat"><small>Recorded quantity loss</small><strong id="statLoss">0 kg</strong></div>
+  </section>
+  <div class="layout">
+    <section class="panel">
+      <h2>1. Register a batch</h2><p class="sub">Create a unique batch ID and QR label.</p>
+      <form id="batchForm">
+        <div class="two">
+          <div><label for="vegetable">Vegetable *</label><input id="vegetable" required placeholder="e.g. Tomato"></div>
+          <div><label for="quantity">Quantity (kg) *</label><input id="quantity" required type="number" min="0.1" step="0.1" placeholder="500"></div>
+        </div>
+        <div class="two">
+          <div><label for="farmer">Farmer / supplier *</label><input id="farmer" required placeholder="Name or supplier ID"></div>
+          <div><label for="phone">Contact number</label><input id="phone" type="tel" placeholder="Optional"></div>
+        </div>
+        <div class="two">
+          <div><label for="harvest">Harvest date</label><input id="harvest" type="date"></div>
+          <div><label for="vehicle">Vehicle number</label><input id="vehicle" placeholder="TN 00 AB 1234"></div>
+        </div>
+        <label for="origin">Farm / origin *</label><input id="origin" required placeholder="Village, district">
+        <label for="destination">Destination market</label><input id="destination" value="Koyambedu Wholesale Market, Chennai">
+        <label for="notes">Notes</label><input id="notes" placeholder="Grade, packing details, etc.">
+        <div class="actions"><button type="submit">Create batch + QR</button><button class="secondary" type="reset">Clear form</button></div>
+      </form>
+      <div id="qrBox"><span class="muted">Your batch QR code will appear here.</span></div>
+      <div class="actions"><button id="downloadQr" class="secondary" disabled>Download QR PNG</button><button id="printQr" class="secondary" disabled>Print label</button></div>
+      <p id="createdMsg" class="muted"></p>
+    </section>
+    <section class="panel">
+      <h2>2. Scan a batch QR</h2><p class="sub">Scan the label, then record a checkpoint or delivery.</p>
+      <div class="actions"><button id="startScan">Start camera scanner</button><button id="stopScan" class="secondary" disabled>Stop scanner</button></div>
+      <div id="reader" class="hidden"></div>
+      <label for="manualBatch">Or enter batch ID / paste QR content</label><input id="manualBatch" placeholder="VEG-20261015-ABC123">
+      <div class="actions"><button id="loadBatch">Load batch</button></div>
+      <div id="scanResult" class="muted">No batch selected.</div>
+      <div id="checkpointActions" class="hidden">
+        <label for="eventType">Checkpoint event</label>
+        <select id="eventType">
+          <option>Dispatched</option><option>In transit</option><option>Checkpoint reached</option><option>Delivered</option><option>Quality issue</option><option>Rejected</option></select>
+        <label for="receivedQty">Quantity received / remaining (kg), if applicable</label><input id="receivedQty" type="number" min="0" step="0.1" placeholder="Leave blank unless known">
+        <label for="checkpointNote">Checkpoint note</label><input id="checkpointNote" placeholder="e.g. Arrived at market gate">
+        <div class="actions"><button id="recordEvent">Record event + GPS</button><button id="showHistory" class="secondary">View history</button></div>
+        <p class="muted" id="gpsStatus">GPS is requested when you record an event.</p>
+      </div>
+    </section>
+    <section class="panel full">
+      <h2>3. Shipment dashboard</h2><p class="sub">Filter batches and open a record to see its event history.</p>
+      <div class="toolbar">
+        <div><label for="search">Search</label><input id="search" placeholder="Batch, vegetable, farmer, vehicle…"></div>
+        <div><label for="statusFilter">Status</label><select id="statusFilter"><option value="">All statuses</option><option>Created</option><option>Dispatched</option><option>In transit</option><option>Delivered</option><option>Delayed</option><option>Rejected</option></select></div>
+        <div style="flex:0 0 auto"><button id="exportCsv" class="secondary">Export CSV</button></div>
+        <div style="flex:0 0 auto"><button id="exportJson" class="secondary">Backup JSON</button></div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Batch</th><th>Vegetable / quantity</th><th>Origin → destination</th><th>Vehicle</th><th>Status</th><th>Last update</th><th>Actions</th></tr></thead><tbody id="batchRows"></tbody></table></div>
+      <p id="emptyState" class="muted">No batches yet. Create your first batch above.</p>
+    </section>
+    <section class="panel full">
+      <h2>4. Selected batch history</h2><div id="historyPanel" class="muted">Select a batch or scan a QR code to view its timeline.</div>
+    </section>
+  </div>
+  <footer>Vegetable Route prototype · GPS coordinates are recorded only after permission is granted. Protect supplier contact details before real-world use.</footer>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const STORAGE_KEY = "vegetableRoute.batches.v1";
+let batches = load(), selectedId = null, scanner = null, currentQr = null;
+function load(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]")}catch(e){return []}}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(batches));render()}
+function now(){return new Date().toISOString()}
+function localTime(iso){if(!iso)return "—";return new Date(iso).toLocaleString()}
+function makeId(){return "VEG-"+new Date().toISOString().slice(0,10).replaceAll("-","")+"-"+Math.random().toString(36).slice(2,8).toUpperCase()}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function statusClass(s){return s==="In transit"?"In-transit":s.replaceAll(" ","-")}
+function findBatch(raw){let val=(raw||"").trim();try{const u=new URL(val);val=u.searchParams.get("batch")||val}catch(e){};try{const obj=JSON.parse(val);val=obj.batchId||obj.id||val}catch(e){};return batches.find(b=>b.id===val)||batches.find(b=>b.id===val.toUpperCase())}
+function createQr(batch){
+  $("qrBox").innerHTML="";
+  const payload=JSON.stringify({app:"VegetableRoute",batchId:batch.id});
+  const node=document.createElement("div");$("qrBox").appendChild(node);
+  if(window.QRCode){new QRCode(node,{text:payload,width:180,height:180,correctLevel:QRCode.CorrectLevel.M});currentQr=batch.id;$("downloadQr").disabled=false;$("printQr").disabled=false;$("createdMsg").textContent="QR created for "+batch.id+". Print and attach it to this batch/crate."}
+  else {$("qrBox").textContent="QR library could not load. Check internet access and refresh.";currentQr=null}
+}
+$("batchForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const batch={id:makeId(),vegetable:$("vegetable").value.trim(),quantity:Number($("quantity").value),farmer:$("farmer").value.trim(),phone:$("phone").value.trim(),harvestDate:$("harvest").value,vehicle:$("vehicle").value.trim(),origin:$("origin").value.trim(),destination:$("destination").value.trim()||"Koyambedu Wholesale Market, Chennai",notes:$("notes").value.trim(),status:"Created",createdAt:now(),updatedAt:now(),events:[]};
+  batch.events.push({type:"Batch created",at:batch.createdAt,note:"Batch registered; QR label generated.",quantity:batch.quantity,location:null});
+  batches.unshift(batch);selectedId=batch.id;save();createQr(batch);showBatch(batch);$("batchForm").reset();$("destination").value="Koyambedu Wholesale Market, Chennai";
+});
+$("downloadQr").addEventListener("click",()=>{
+  const canvas=$("qrBox").querySelector("canvas"),img=$("qrBox").querySelector("img");
+  const url=canvas?canvas.toDataURL("image/png"):img?.src;if(!url)return;
+  const a=document.createElement("a");a.href=url;a.download=(currentQr||"vegetable-batch")+".png";a.click();
+});
+$("printQr").addEventListener("click",()=>{
+  const canvas=$("qrBox").querySelector("canvas"),img=$("qrBox").querySelector("img");const src=canvas?canvas.toDataURL("image/png"):img?.src;if(!src)return;
+  const b=batches.find(x=>x.id===currentQr);const w=window.open("","_blank");if(!w){alert("Please allow pop-ups to print the label.");return}
+  w.document.write(`<html><body style="font-family:Arial;text-align:center;padding:20px"><h2>${escapeHtml(b?.vegetable||"Vegetables")}</h2><img width="220" src="${src}"><h3>${escapeHtml(currentQr)}</h3><p>${escapeHtml(b?.origin||"")} → ${escapeHtml(b?.destination||"")}</p><p>${escapeHtml(b?.quantity||"")} kg</p><script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
+});
+function showBatch(b){if(!b)return;$("manualBatch").value=b.id;$("scanResult").innerHTML=`<strong>${escapeHtml(b.id)} · ${escapeHtml(b.vegetable)}</strong><br>${escapeHtml(b.quantity)} kg · ${escapeHtml(b.farmer)}<br>${escapeHtml(b.origin)} → ${escapeHtml(b.destination)}<br>Status: <span class="badge ${statusClass(b.status)}">${escapeHtml(b.status)}</span>`;$("checkpointActions").classList.remove("hidden");selectedId=b.id;renderHistory(b)}
+$("loadBatch").addEventListener("click",()=>{const b=findBatch($("manualBatch").value);if(!b){$("scanResult").textContent="Batch not found. Create it first or check the batch ID.";return}showBatch(b)});
+$("recordEvent").addEventListener("click",()=>{
+  const b=batches.find(x=>x.id===selectedId);if(!b)return;
+  const type=$("eventType").value, qty=$("receivedQty").value===""?null:Number($("receivedQty").value), note=$("checkpointNote").value.trim();
+  const add=(coords)=>{const event={type,at:now(),note,quantity:qty,location:coords};b.events.push(event);b.updatedAt=event.at;
+    if(type==="Dispatched")b.status="Dispatched";else if(type==="In transit"||type==="Checkpoint reached")b.status="In transit";else if(type==="Delivered")b.status="Delivered";else if(type==="Rejected")b.status="Rejected";else if(type==="Quality issue")b.status="Delayed";
+    if(qty!==null)b.lastKnownQuantity=qty;
+    save();showBatch(b);$("checkpointNote").value="";$("receivedQty").value="";$("gpsStatus").textContent=coords?`GPS recorded: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`:"Event saved without GPS coordinates.";
+  };
+  $("gpsStatus").textContent="Requesting location permission…";
+  if(navigator.geolocation){navigator.geolocation.getCurrentPosition(p=>add({lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}),err=>{add(null);$("gpsStatus").textContent="Location unavailable/denied; event was still saved. "+err.message},{enableHighAccuracy:true,timeout:10000,maximumAge:30000})}
+  else {add(null);$("gpsStatus").textContent="This browser does not support GPS; event was still saved."}
+});
+$("showHistory").addEventListener("click",()=>{const b=batches.find(x=>x.id===selectedId);if(b)renderHistory(b)});
+function renderHistory(b){$("historyPanel").innerHTML=`<h3>${escapeHtml(b.id)} · ${escapeHtml(b.vegetable)}</h3><p class="muted">${escapeHtml(b.origin)} → ${escapeHtml(b.destination)} · Current status: ${escapeHtml(b.status)}</p>`+(b.events||[]).slice().reverse().map(ev=>`<div class="event"><strong>${escapeHtml(ev.type)} · ${escapeHtml(localTime(ev.at))}</strong>${ev.note?`<div>${escapeHtml(ev.note)}</div>`:""}${ev.quantity!==null&&ev.quantity!==undefined?`<small>Quantity recorded: ${escapeHtml(ev.quantity)} kg</small>`:""}${ev.location?`<div><small>GPS: ${ev.location.lat.toFixed(5)}, ${ev.location.lng.toFixed(5)} · ±${Math.round(ev.location.accuracy||0)} m · <a target="_blank" rel="noopener" href="https://maps.google.com/?q=${ev.location.lat},${ev.location.lng}">Open map</a></small></div>`:""}</div>`).join("")}
+function render(){
+  const q=$("search").value.toLowerCase(),st=$("statusFilter").value;
+  const visible=batches.filter(b=>(!st||b.status===st)&&[b.id,b.vegetable,b.farmer,b.vehicle,b.origin,b.destination].join(" ").toLowerCase().includes(q));
+  $("batchRows").innerHTML=visible.map(b=>`<tr><td><button class="secondary" data-open="${escapeHtml(b.id)}">${escapeHtml(b.id)}</button></td><td>${escapeHtml(b.vegetable)}<br><small>${escapeHtml(b.quantity)} kg${b.lastKnownQuantity!=null?` · last recorded ${escapeHtml(b.lastKnownQuantity)} kg`:""}</small></td><td>${escapeHtml(b.origin)}<br><small>→ ${escapeHtml(b.destination)}</small></td><td>${escapeHtml(b.vehicle||"—")}</td><td><span class="badge ${statusClass(b.status)}">${escapeHtml(b.status)}</span></td><td>${escapeHtml(localTime(b.updatedAt))}</td><td><button class="secondary" data-qr="${escapeHtml(b.id)}">QR</button> <button class="secondary" data-history="${escapeHtml(b.id)}">History</button></td></tr>`).join("");
+  $("emptyState").classList.toggle("hidden",visible.length>0);
+  $("statBatches").textContent=batches.length;$("statTransit").textContent=batches.filter(b=>b.status==="In transit"||b.status==="Dispatched").length;$("statDelivered").textContent=batches.filter(b=>b.status==="Delivered").length;
+  let loss=0;batches.forEach(b=>{const received=b.lastKnownQuantity;if(received!=null&&b.quantity>received)loss+=b.quantity-received});$("statLoss").textContent=loss.toFixed(1)+" kg";
+}
+$("batchRows").addEventListener("click",e=>{const el=e.target.closest("button");if(!el)return;const b=batches.find(x=>x.id===el.dataset.open||x.id===el.dataset.qr||x.id===el.dataset.history);if(!b)return;showBatch(b);if(el.dataset.qr)createQr(b);if(el.dataset.history)renderHistory(b);window.scrollTo({top:0,behavior:"smooth"})});
+$("search").addEventListener("input",render);$("statusFilter").addEventListener("change",render);
+$("exportCsv").addEventListener("click",()=>{const rows=[["Batch ID","Vegetable","Quantity kg","Farmer","Phone","Harvest date","Vehicle","Origin","Destination","Status","Created","Updated"],...batches.map(b=>[b.id,b.vegetable,b.quantity,b.farmer,b.phone,b.harvestDate,b.vehicle,b.origin,b.destination,b.status,b.createdAt,b.updatedAt])];const csv=rows.map(r=>r.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\r\n");download("vegetable-batches.csv",csv,"text/csv")});
+$("exportJson").addEventListener("click",()=>download("vegetable-route-backup.json",JSON.stringify(batches,null,2),"application/json"));
+function download(name,content,type){const a=document.createElement("a"),url=URL.createObjectURL(new Blob([content],{type}));a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
+$("startScan").addEventListener("click",async()=>{
+  if(!window.Html5Qrcode){alert("Scanner library did not load. Check internet access and refresh.");return}
+  $("reader").classList.remove("hidden");scanner=new Html5Qrcode("reader");
+  try{await scanner.start({facingMode:"environment"},{fps:10,qrbox:{width:240,height:240}},decoded=>{const b=findBatch(decoded);if(b){showBatch(b);$("scanResult").scrollIntoView({behavior:"smooth",block:"nearest"})}else{$("manualBatch").value=decoded;$("scanResult").textContent="QR scanned, but no matching batch was found. Decoded content: "+decoded}stopScanner()},err=>{});$("startScan").disabled=true;$("stopScan").disabled=false}
+  catch(err){$("reader").classList.add("hidden");alert("Could not start camera. Use HTTPS/localhost, allow camera permission, or enter the batch ID manually. Details: "+err)}
+});
+async function stopScanner(){if(scanner){try{await scanner.stop();scanner.clear()}catch(e){}scanner=null}$("reader").classList.add("hidden");$("startScan").disabled=false;$("stopScan").disabled=true}
+$("stopScan").addEventListener("click",stopScanner);
+render();
+})();
+</script>
+</body></html>
